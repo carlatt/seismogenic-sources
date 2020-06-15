@@ -3,13 +3,14 @@ from scipy.spatial.qhull import ConvexHull
 from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
+from osgeo import ogr
 
 
 class Clusterizer(object):
     """
     This class calculates clusters from a list of geographic
     points splitting them into lists. For each cluster, non meaningful
-    points ae removed as well as noise
+    points are removed as well as noise
     It also calculates a convex hull for each cluster.
     """
 
@@ -56,11 +57,8 @@ class Clusterizer(object):
         n_clusters = self.total_clusters
         colors = [plt.cm.Spectral(each)
                   for each in np.linspace(0, 1, n_clusters)]
-        for k, col in zip(range(n_clusters), colors):
-            if k == -1:
-                # Black used for noise.
-                col = [0, 0, 0, 1]
 
+        for k, col in zip(range(n_clusters), colors):
             xy = np.array(self.cluster_points[k])
             plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
                      markeredgecolor='k', markersize=14)
@@ -87,14 +85,35 @@ class Clusterizer(object):
         """
         for i in range(self.total_clusters):
             hull = self.cluster_hulls[i]
-            points = np.array(self.cluster_points[i])
+            points_in_cluster = np.array(self.cluster_points[i])
             for simplex in hull.simplices:
-                plt.plot(points[simplex, 0], points[simplex, 1], 'b')
+                plt.plot(points_in_cluster[simplex, 0], points_in_cluster[simplex, 1], 'b')
+
     def get_cluster_points(self):
         return self.cluster_points.copy()
 
     def get_cluster_hulls(self):
         return self.cluster_hulls.copy()
+
+    def export_cluster_hulls_as_GDAL_poly(self):
+        """
+
+        @return: an array containing a GDAL polygon for each cluster
+        """
+        gdhulls = []
+        for i in range(self.total_clusters):
+            hull = self.cluster_hulls[i]
+            points_in_cluster = np.array(self.cluster_points[i])
+            ring = ogr.Geometry(ogr.wkbLinearRing)
+            for simplex in hull.simplices:
+                x = points_in_cluster[simplex[0], 0]
+                y = points_in_cluster[simplex[0], 1]
+                ring.AddPoint(x, y)
+            poly = ogr.Geometry(ogr.wkbPolygon)
+            poly.AddGeometry(ring)
+            gdhulls.append(poly)
+        return gdhulls
+
 
     def show_plots(self):
         plt.show()
@@ -125,5 +144,8 @@ if __name__ == '__main__':
 
     hulls = cluster.get_cluster_hulls()
     points = cluster.get_cluster_points()
+    gdal_hulls = cluster.export_cluster_hulls_as_GDAL_poly()
     print(points)
     print(hulls)
+    for gdhull in gdal_hulls:
+        print(gdhull.ExportToWkt())
