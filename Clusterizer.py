@@ -105,10 +105,17 @@ class Clusterizer(object):
             hull = self.cluster_hulls[i]
             points_in_cluster = np.array(self.cluster_points[i])
             ring = ogr.Geometry(ogr.wkbLinearRing)
-            for simplex in hull.simplices:
-                x = points_in_cluster[simplex[0], 0]
-                y = points_in_cluster[simplex[0], 1]
-                ring.AddPoint(x, y)
+
+            # get x and y coordinates (x and y are np.array)
+            x = points_in_cluster[hull.vertices, 0]
+            y = points_in_cluster[hull.vertices, 1]
+
+            # get points
+            for i in range(len(x)):
+                ring.AddPoint(x[i], y[i])
+            # close the polygon
+            ring.AddPoint(x[0],y[0])
+
             poly = ogr.Geometry(ogr.wkbPolygon)
             poly.AddGeometry(ring)
             gdhulls.append(poly)
@@ -149,3 +156,4 @@ if __name__ == '__main__':
     print(hulls)
     for gdhull in gdal_hulls:
         print(gdhull.ExportToWkt())
+        print(gdhull.IsValid())
