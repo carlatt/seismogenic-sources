@@ -19,10 +19,14 @@ def find_candidate_sources(polygons):
                 candidatesCount[sourceID]=candidatesCount[sourceID]+1
             else:
                 candidatesCount[sourceID]=1
-                candidates.append(source)
+                source_geom = source.GetGeometryRef().GetGeometryRef(0)
+                source_poly = ogr.Geometry(ogr.wkbPolygon)
+                source_poly.AddGeometry(source_geom)
+                candidates.append(source_poly)
 
 
     sortedCandidatesCount = sorted(candidatesCount.items(), key=lambda x: x[1], reverse=True)
+    plt.show()
     return sortedCandidatesCount, candidates
 
 def find_nearest_sources(polygon,layer_seism):
@@ -44,6 +48,19 @@ def find_nearest_sources(polygon,layer_seism):
 
     return sources
 
+def find_affected_area(polygons):
+    candidatesCount, candidates = find_candidate_sources(polygons)
+
+    union = ogr.Geometry(ogr.wkbPolygon)
+    #find a 15km buffer for each candidate and dothe union of them
+    for candidate in candidates:
+        plot_geometry(candidate, fillcolor='blue', alpha=1)
+        union = union.Union(candidate.Buffer(1))
+
+    print (union)
+    plot_geometry(union, fillcolor='grey', alpha=0.5)
+    plt.show()
+
 
 if __name__ == '__main__':
 
@@ -58,9 +75,9 @@ if __name__ == '__main__':
     polygon4 = ogr.CreateGeometryFromWkt(p4)
     polygons=[polygon1,polygon2,polygon3,polygon4]
 
-    candidatesCount, candidates = find_candidate_sources(polygons)
-    print (candidatesCount)
+    #candidatesCount, candidates = find_candidate_sources(polygons)
+    #print (candidatesCount)
+    find_affected_area(polygons)
 
-    plt.show()
 
 
