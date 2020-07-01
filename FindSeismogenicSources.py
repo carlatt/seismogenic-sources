@@ -57,9 +57,10 @@ def find_affected_area(polygons):
         plot_geometry(candidate, fillcolor='blue', alpha=1)
         union = union.Union(candidate.Buffer(1))
 
-    print (union)
-    plot_geometry(union, fillcolor='grey', alpha=0.5)
+    plot_geometry(union, fillcolor='grey', alpha=0.2)
     plt.show()
+
+    return union
 
 
 if __name__ == '__main__':
@@ -77,7 +78,8 @@ if __name__ == '__main__':
 
     #candidatesCount, candidates = find_candidate_sources(polygons)
     #print (candidatesCount)
-    find_affected_area(polygons)
+    area = find_affected_area(polygons)
+    print(area)
 
 
 
