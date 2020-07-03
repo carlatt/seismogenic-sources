@@ -17,17 +17,20 @@ if __name__ == '__main__':
 
     n = 6  # number of possible sources
 
-
     seismogenic_area = find_seismogenic_area(polygons, n)
     emergency_area = find_emergency_area(seismogenic_area)
 
+    #To find the polygons of the emergency and seismogenic sources
+    seismogenic_sources = find_n_candidate_sources(polygons,n)
+    emergency_sources = find_emergency_sources(seismogenic_area)
 
-
+    #To find the total area
     total_area = find_interested_area(seismogenic_area, emergency_area)
+
+    print (total_area)
 
     plot_rings(total_area, edgecolor="black",fillcolor="grey",
                  holeedgecolor='red',holefillcolor='white',
                     alpha=1,linewidth=0.7,fill=False)
-
 
     plt.show()
