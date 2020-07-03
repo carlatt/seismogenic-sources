@@ -26,12 +26,20 @@ def find_candidate_sources(polygons):
 
 
     sortedCandidatesCount = sorted(candidatesCount.items(), key=lambda x: x[1], reverse=True)
-    plt.show()
+    #plt.show()
     return sortedCandidatesCount, candidates
+
+def find_n_candidate_sources(polygons,n):
+    candidatesCount, candidates = find_candidate_sources(polygons)
+    n_candidates = []
+    for i in range(0, n):
+        n_candidates.append (candidates[i])
+    return  n_candidates
+
 
 def find_nearest_sources(polygon,layer_seism):
 
-    area = polygon.Buffer(1)
+    area = polygon.Buffer(0.7)
 
     plot_geometry(polygon, fillcolor='green', alpha=1)
     plot_geometry(area, fillcolor='grey', alpha=0.2)
@@ -49,15 +57,15 @@ def find_nearest_sources(polygon,layer_seism):
     return sources
 
 def find_affected_area(polygons):
-    candidatesCount, candidates = find_candidate_sources(polygons)
 
     union = ogr.Geometry(ogr.wkbPolygon)
-    #find a 15km buffer for each candidate and dothe union of them
-    for candidate in candidates:
-        plot_geometry(candidate, fillcolor='blue', alpha=1)
-        union = union.Union(candidate.Buffer(1))
 
-    plot_geometry(union, fillcolor='grey', alpha=0.2)
+    #find a 15km buffer for each candidate and dothe union of them
+    for poly in polygons:
+        #plot_geometry(poly, fillcolor='blue', alpha=1)
+        union = union.Union(poly.Buffer(0.7))
+
+    plot_geometry(union, fillcolor='red', alpha=0.1)
     plt.show()
 
     return union
@@ -78,7 +86,10 @@ if __name__ == '__main__':
 
     #candidatesCount, candidates = find_candidate_sources(polygons)
     #print (candidatesCount)
-    area = find_affected_area(polygons)
+
+    n= 6 #number of possible sources
+    candidates = find_n_candidate_sources(polygons,n)
+    area = find_affected_area(candidates)
     print(area)
 
 
