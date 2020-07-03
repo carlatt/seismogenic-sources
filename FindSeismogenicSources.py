@@ -33,7 +33,7 @@ def find_n_candidate_sources(polygons,n):
     candidatesCount, candidates = find_candidate_sources(polygons)
     n_candidates = []
     for i in range(0, n):
-        n_candidates.append (candidates[i])
+        n_candidates.append(candidates[i])
     return  n_candidates
 
 
@@ -56,17 +56,18 @@ def find_nearest_sources(polygon,layer_seism):
 
     return sources
 
-def find_affected_area(polygons):
+def find_seismogenic_area(polygons,n):
 
+    candidates = find_n_candidate_sources(polygons, n)
     union = ogr.Geometry(ogr.wkbPolygon)
 
     #find a 15km buffer for each candidate and dothe union of them
-    for poly in polygons:
-        #plot_geometry(poly, fillcolor='blue', alpha=1)
-        union = union.Union(poly.Buffer(0.7))
+    for candidate in candidates:
+        #plot_geometry(candidate, fillcolor='blue', alpha=1)
+        union = union.Union(candidate.Buffer(0.7))
 
     plot_geometry(union, fillcolor='red', alpha=0.1)
-    plt.show()
+
 
     return union
 
@@ -84,13 +85,14 @@ if __name__ == '__main__':
     polygon4 = ogr.CreateGeometryFromWkt(p4)
     polygons=[polygon1,polygon2,polygon3,polygon4]
 
-    #candidatesCount, candidates = find_candidate_sources(polygons)
-    #print (candidatesCount)
-
     n= 6 #number of possible sources
-    candidates = find_n_candidate_sources(polygons,n)
-    area = find_affected_area(candidates)
-    print(area)
 
+    seismogenic_sources = find_n_candidate_sources(polygons,n)
+    seismogenic_area = find_seismogenic_area(polygons,n)
+    plt.show()
+    print(seismogenic_area)
+
+    # candidatesCount, candidates = find_candidate_sources(polygons)
+    # print (candidatesCount)
 
 
