@@ -12,8 +12,8 @@ class Italy_Road_Finder(object):
         self.load_Italy()
 
     def load_Italy(self):
-        filepath = 'data/italy.graphml'
-        my_file = Path(filepath)
+        filepath = 'italy.graphml'
+        my_file = Path('data/'+filepath)
         if my_file.is_file():
             self.map = ox.load_graphml(filepath)
         else:
