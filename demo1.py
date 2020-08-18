@@ -36,5 +36,7 @@ if __name__ == "__main__":
         source = capital.Centroid()
         destination = emergency_area.Centroid()
         map.find_route(source.ExportToWkt(), destination.ExportToWkt())
-        map.plot_route()
+        map.save_route()
+        #map.plot_route()
+    map.plot_routes()
 

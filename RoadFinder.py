@@ -4,11 +4,14 @@ import networkx as nx
 import shapely.wkt
 from pathlib import Path
 
+
 class Italy_Road_Finder(object):
     def __init__(self):
         ox.config(use_cache=True, log_console=True)
+        self.italy_gdf = ox.gdf_from_place('Italy')
         self.map = None
         self.route = None
+        self.route_cache = []
         self.load_Italy()
 
     def load_Italy(self):
@@ -31,19 +34,23 @@ class Italy_Road_Finder(object):
         # Get target x and y coordinates
         target_xy = (dest.y, dest.x)
         # Find the node in the graph that is closest to the origin point (here, we want to get the node id)
-        orig_node = ox.get_nearest_node(self.map, orig_xy, method='euclidean')
+        orig_node = ox.get_nearest_node(self.map, orig_xy)
 
         # Find the node in the graph that is closest to the target point (here, we want to get the node id)
-        target_node = ox.get_nearest_node(self.map, target_xy, method='euclidean')
+        target_node = ox.get_nearest_node(self.map, target_xy)
 
         # Calculate the shortest path
         try:
             self.route = nx.shortest_path(G=self.map, source=orig_node, target=target_node, weight='length')
         except nx.NetworkXNoPath:
-            self.route = nx.shortest_path(G=self.map, source=orig_node, target=orig_node, weight='length')
+            self.route = nx.shortest_path(G=self.map, source=orig_node, target=orig_node)
 
+    def save_route(self):
+        self.route_cache.append(self.route)
     def plot_route(self):
-        fig, ax = ox.plot_graph_route(self.map, self.route)
+        fig, ax = ox.plot_graph_route(self.map, self.route, route_color= 'b')
+    def plot_routes(self):
+        fig, ax = ox.plot_graph_routes(self.map, self.route_cache, route_color='g')
 
 
 

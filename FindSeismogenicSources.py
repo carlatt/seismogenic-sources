@@ -56,7 +56,18 @@ def find_nearest_sources(polygon,layer_seism):
 
     return sources
 
+def plot_Italia():
+    ds = ogr.Open('data')  # file name and path
+    layer = ds.GetLayer('ne_50m_admin_0_countries')
+
+    layer.SetAttributeFilter("name = 'Italy'")  # there is only one feature in the layer with this condition!
+    feature = layer.GetNextFeature()  # therefore, we are importing Germany
+    print(layer.GetFeatureCount())
+    vis = VisualLayer(layer, 'False')
+    vis.plot()
+
 def find_seismogenic_area(polygons,n):
+    plot_Italia()
 
     candidates = find_n_candidate_sources(polygons, n)
     union = ogr.Geometry(ogr.wkbPolygon)
