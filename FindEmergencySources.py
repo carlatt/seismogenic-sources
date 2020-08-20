@@ -24,14 +24,14 @@ def find_nearest_capitals(source_polygon):
         geom = capital.GetGeometryRef()
         geom.TransformTo(target_osr)
 
-        if (geom.GetGeometryName() == 'POLYGON'):
-            geom = switch_lat_lon(geom)
+        geom = switch_lat_lon(geom)
 
         #plot_geometry(geom, fillcolor='blue', alpha=0.5)
-            if geom.Intersect(buf):
-                name = capital.GetField('comune')
-                plot_geometry(geom, fillcolor='blue', alpha=0.5)
-                nearest_capitals.append([name,geom.ExportToWkt()])
+        if geom.Intersect(buf):
+            name = capital.GetField('comune')
+            plot_geometry(geom, fillcolor='blue', alpha=0.5)
+            nearest_capitals.append([name,geom.ExportToWkt()])
+
 
     #Todo: try to return the capitals in order of distance
     return nearest_capitals
@@ -42,25 +42,33 @@ def switch_lat_lon(geom):
 
     #plot_geometry(g, fillcolor='red', alpha=0.2)
     if (geom.GetGeometryName() == 'POLYGON'):
-        g = geom.GetGeometryRef(0)
+        geometry = ogr.Geometry(ogr.wkbPolygon)
         for i in range (0, geom.GetGeometryCount()):
             linearring = geom.GetGeometryRef(i)
             new_ring = ogr.Geometry(ogr.wkbLinearRing)
             for j in range(0, linearring.GetPointCount()):
                 pt = linearring.GetPoint(j)
                 new_ring.AddPoint(pt[1], pt[0])
-
-            poly = ogr.Geometry(ogr.wkbPolygon)
-            poly.AddGeometry(new_ring)
+            geometry.AddGeometry(new_ring)
     else:
-        poly = ogr.Geometry(ogr.wkbPolygon)
+        if (geom.GetGeometryName() == 'MULTIPOLYGON'):
+            geometry = ogr.Geometry(ogr.wkbMultiPolygon)
+            for i in range(0, geom.GetGeometryCount()):
+                polygon = geom.GetGeometryRef(i)
+                new_poly = ogr.Geometry(ogr.wkbPolygon)
+                for t in range(0, polygon.GetGeometryCount()):
+                    linearring = (polygon.GetGeometryRef(t))
+                    new_ring = ogr.Geometry(ogr.wkbLinearRing)
+                    for j in range(0, linearring.GetPointCount()):
+                        pt = linearring.GetPoint(j)
+                        new_ring.AddPoint(pt[1], pt[0])
 
-    return poly
+                    new_poly.AddGeometry(new_ring)
+                geometry.AddGeometry(new_poly)
+        else:
+            print(geom.GetGeometryName())
+    return geometry
 
-    #Todo:continue with the other types
-
-    #else:
-        #print (g.GetGeometryName())
 
 def find_emergency_sources(polygon):
     #for example finding the nearest capitals
