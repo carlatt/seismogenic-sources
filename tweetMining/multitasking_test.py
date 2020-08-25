@@ -15,8 +15,8 @@ dataQueue = queue.Queue()
 
 
 # Function called by the producer thread
-def producer(queue_tweets=dataQueue, words_to_track=['a'], user=None):
-    tweet_retreiver.get_tweets(queue_tweets, words_to_track=words_to_track, user=user)
+def producer(tweet_processor, queue_tweets=dataQueue, words_to_track=['a'], user=None):
+    tweet_retreiver.get_tweets_coords(queue_tweets, tweet_processor, words_to_track=words_to_track, user=user)
 
 # Function called by the consumer threads
 def consumer(queue_tweets=dataQueue):
@@ -34,12 +34,11 @@ def consumer(queue_tweets=dataQueue):
 if __name__ == '__main__':
     # Create consumers
     tweets = queue.Queue()
-    for i in range(numconsumers):
-        start_new_thread(consumer, (tweets,))
 
-    # Create producers
-    for i in range(numproducers):
-        start_new_thread(producer, (tweets,))
+    start_new_thread(producer, (tweets,))
+
+    start_new_thread(consumer, (tweets,))
+
 
     # una zozzeria
     while True:

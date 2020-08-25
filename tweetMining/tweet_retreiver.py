@@ -1,15 +1,19 @@
+import datetime
 from queue import Empty
 import queue
 import tweepy
 
-
+'''
+used for multitasking
+'''
 class Stream2Queue(tweepy.StreamListener):
-    def __init__(self, queue, api=None):
+    def __init__(self, queue, tweet_processor, api=None):
         self.api = api or tweepy.API()
         self.tweets = queue
+        self.processor = tweet_processor
 
     def on_status(self, status):
-        self.tweets.put(status)
+        self.tweets.put(self.processor.gimme_coords(status))
 
     def queue_get_all(self):
         items = []
@@ -19,6 +23,22 @@ class Stream2Queue(tweepy.StreamListener):
             except Empty as e:
                 break
         return items
+
+
+class Stream2List(tweepy.StreamListener):
+    def __init__(self, api=None):
+        self.api = api or tweepy.API()
+        self.tweets = []
+        self.end = datetime.datetime.now() + datetime.timedelta(0,10)
+
+    def on_status(self, status):
+        self.tweets.append(status)
+        if datetime.datetime.now() < self.end:
+            return True
+        else:
+            return False
+    def get_list(self):
+        return self.tweets
 
 
 
@@ -31,12 +51,12 @@ def keys(name):
                 'TwitTOKSEC': '24qRoFKDHiQb8D7tbhMdY56KBm8wYIWpDngBoLW0IgaqV'}
     return keychain[name]
 
-def get_tweets(queue, words_to_track=['a'], user=None):
+def get_tweets_coords(queue, tweet_processor,  words_to_track=['a'], user=None):
     auth = tweepy.OAuthHandler(keys('TwitKEY'), keys('TwitSECRET'))
     auth.set_access_token(keys('TwitTOKEN'), keys('TwitTOKSEC'))
     api = tweepy.API(auth)
 
-    screen = Stream2Queue(queue)
+    screen = Stream2Queue(queue, tweet_processor)
     stream = tweepy.streaming.Stream(api.auth, screen)
     stream.filter(track=words_to_track, languages=['it'], follow=user)
 
@@ -53,7 +73,7 @@ if __name__ == "__main__":
     #pprint(vars(user))
 
     queue = queue.Queue()
-    screen = Stream2Queue(queue)
+    screen = Stream2List()
     stream = tweepy.streaming.Stream(api.auth, screen)
     # stream.filter(track=['a'], languages=['it'])
     # tweets from ingv
