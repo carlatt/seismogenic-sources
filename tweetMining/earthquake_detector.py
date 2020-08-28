@@ -4,10 +4,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn import svm
 import os.path
 
-class earthquake_detector_SVM(object):
+from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split
+
+
+class earthquake_detector_SA(object):
     '''
     used to check if a tweet talks about an earthquake happening now or not
-    it actually can not be used due to a lack of dataset
     '''
     def __init__(self):
         self.vectorizer = TfidfVectorizer(min_df=5,
@@ -21,13 +24,13 @@ class earthquake_detector_SVM(object):
             with open('../data/SVM_state/vectorizer.pkl', 'rb') as fid:
                 self.vectorizer = cPickle.load(fid)
         else:
-            self.classifier = svm.SVC(kernel='rbf')
+            self.classifier = svm.SVC(kernel='rbf', C=0.5, gamma='scale')
             self.vectorizer = TfidfVectorizer(min_df=5,
                                               max_df=0.8,
                                               sublinear_tf=True,
                                               use_idf=True)
 
-    def train(self, trainData):
+    def train(self, trainData, save_to_file=False):
         '''
 
         @param trainData: pandas csv with labels 'Content' (tweet), 'Label'
@@ -35,27 +38,29 @@ class earthquake_detector_SVM(object):
         '''
         train_vectors = self.vectorizer.fit_transform(trainData['Content'])
         self.classifier.fit(train_vectors, trainData['Label'])
-        with open('../data/SVM_state/classifier.pkl', 'wb') as fid:
-            cPickle.dump(self.classifier, fid)
-        with open('../data/SVM_state/vectorizer.pkl', 'wb') as fid:
-            cPickle.dump(self.vectorizer, fid)
+        if save_to_file:
+            with open('../data/SVM_state/classifier.pkl', 'wb') as fid:
+                cPickle.dump(self.classifier, fid)
+            with open('../data/SVM_state/vectorizer.pkl', 'wb') as fid:
+                cPickle.dump(self.vectorizer, fid)
     def predict(self, data):
         '''
 
         @param data: pandas csv with labels 'Content' (tweet), 'Label'
         @return: array of labels
         '''
-        test_vectors = self.vectorizer.transform(data['Content'])
+        test_vectors = self.vectorizer.transform(data)
         labels = self.classifier.predict(test_vectors)
         return labels
 if __name__ == "__main__":
+    data = pd.read_csv("../data/earthquake_sentiment_analysis/earthquake_dataset_SA.csv")
 
-    # train Datastareddy/sentiment_analysis/master/data/train.csv")
-    # train fake Data
-    train_data = pd.read_csv("https://raw.githubusercontent.com/Vasistareddy/sentiment_analysis/master/data/train.csv")
-    # test fake Data
-    test_data = pd.read_csv("https://raw.githubusercontent.com/Vasistareddy/sentiment_analysis/master/data/test.csv")
+    train_data, test_data = train_test_split(data, test_size=0.2)
 
-    detector = earthquake_detector_SVM()
+
+    detector = earthquake_detector_SA()
     detector.train(trainData=train_data)
-    print(detector.predict(test_data))
+    predictions = detector.predict(test_data['Content'])
+    report = classification_report(test_data['Label'], predictions, output_dict=True)
+    print('positive: ', report['pos'])
+    print('negative: ', report['neg'])

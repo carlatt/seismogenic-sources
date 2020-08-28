@@ -1,3 +1,4 @@
+from tweetMining import earthquake_detector
 '''
 utilities tha can retreive a location from a tweet
 '''
@@ -43,8 +44,18 @@ class tweetProcessorIF(object):
 class genericTweetProcessor(tweetProcessorIF):
     def __init__(self):
         super().__init__()
+        self.SA = earthquake_detector()
     def gimme_coords(self, tweet):
-        pass
+        predictions = self.SA.predict(tweet)
+        for pred in predictions:
+            if pred == 'pos':
+                if tweet.coordinates is not None:
+                    return tweet.coordinates
+                elif tweet.place is not None:
+                    # we have to convert this into coords
+                    zone = find_city(tweet.place)
+                    return (zone['longitude'], zone['latitude'])
+
 
 class INGVTweetProcessor(tweetProcessorIF):
     def __init__(self):
@@ -55,7 +66,6 @@ class INGVTweetProcessor(tweetProcessorIF):
         elif tweet.place is not None:
             # we have to convert this into coords
             zone = find_city(tweet.place)
-
         else:
             res = tweet.text.split('prov/zona')
             res = res[1].split()

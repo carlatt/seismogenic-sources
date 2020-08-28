@@ -18,10 +18,11 @@ dataQueue = queue.Queue()
 def generic_producer(tweet_processor, queue_tweets=dataQueue, words_to_track=['a'], user=None):
     tweet_retreiver.get_tweets_coords(queue_tweets, tweet_processor, words_to_track=words_to_track, user=user)
 
-
 def INGV_coord_producer(queue_tweets=dataQueue):
+    #tweet_retreiver.get_tweets_coords(queue_tweets, tweetProcessorIF.INGVTweetProcessor(),
+    #                                  words_to_track=['STIMA #PROVVISORIA'], user=['121049123'])
     tweet_retreiver.get_tweets_coords(queue_tweets, tweetProcessorIF.INGVTweetProcessor(),
-                                      words_to_track=['STIMA #PROVVISORIA'], user=['121049123'])
+                                      words_to_track=['STIMA #PROVVISORIA'], user=['175041414'])
 def generic_tweet_coord_producer(queue_tweets=dataQueue):
     tweet_retreiver.get_tweets_coords(queue_tweets, tweetProcessorIF.genericTweetProcessor(),
                                       words_to_track=['terremoto'])
@@ -64,7 +65,7 @@ def consumer(queue_tweets=dataQueue):
 
 
 if __name__ == "__main__":
-    tweets = queue.Queue(20)
+    tweets = queue.Queue(1)
     start_new_thread(INGV_coord_producer, (tweets,))
     start_new_thread(consumer, (tweets,))
     while True:
