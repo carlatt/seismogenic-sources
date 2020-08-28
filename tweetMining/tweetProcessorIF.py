@@ -1,9 +1,10 @@
 from tweetMining import earthquake_detector
+import pandas as pd
 '''
 utilities tha can retreive a location from a tweet
 '''
 def find_city(city_name):
-    with open('../data/cities500/cities500.txt', 'r', encoding='utf') as f:
+    with open('data/cities500/cities500.txt', 'r', encoding='utf') as f:
         lines = f.readlines()
 
         for line in lines:
@@ -44,9 +45,12 @@ class tweetProcessorIF(object):
 class genericTweetProcessor(tweetProcessorIF):
     def __init__(self):
         super().__init__()
-        self.SA = earthquake_detector()
+        self.SA = earthquake_detector.earthquake_detector_SA()
     def gimme_coords(self, tweet):
-        predictions = self.SA.predict(tweet)
+        print(type(tweet.text))
+        data = pd.read_csv("./data/earthquake_sentiment_analysis/earthquake_dataset_SA.csv")
+        self.SA.train(trainData=data)
+        predictions = self.SA.predict([tweet.text])
         for pred in predictions:
             if pred == 'pos':
                 if tweet.coordinates is not None:
@@ -54,7 +58,7 @@ class genericTweetProcessor(tweetProcessorIF):
                 elif tweet.place is not None:
                     # we have to convert this into coords
                     zone = find_city(tweet.place)
-                    return (zone['longitude'], zone['latitude'])
+                    return [float(zone['longitude']), float(zone['latitude'])]
 
 
 class INGVTweetProcessor(tweetProcessorIF):
@@ -72,4 +76,7 @@ class INGVTweetProcessor(tweetProcessorIF):
             place = res[0]
             #then we have to convert place to coords as above
             zone = find_city(place)
-        return (zone['longitude'], zone['latitude'])
+        return [float(zone['longitude']), float(zone['latitude'])]
+
+if __name__ == "__main__":
+    pass

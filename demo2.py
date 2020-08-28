@@ -19,10 +19,10 @@ def generic_producer(tweet_processor, queue_tweets=dataQueue, words_to_track=['a
     tweet_retreiver.get_tweets_coords(queue_tweets, tweet_processor, words_to_track=words_to_track, user=user)
 
 def INGV_coord_producer(queue_tweets=dataQueue):
-    #tweet_retreiver.get_tweets_coords(queue_tweets, tweetProcessorIF.INGVTweetProcessor(),
-    #                                  words_to_track=['STIMA #PROVVISORIA'], user=['121049123'])
     tweet_retreiver.get_tweets_coords(queue_tweets, tweetProcessorIF.INGVTweetProcessor(),
-                                      words_to_track=['STIMA #PROVVISORIA'], user=['175041414'])
+                                      words_to_track=['STIMA #PROVVISORIA'], user=['121049123'])
+    #tweet_retreiver.get_tweets_coords(queue_tweets, tweetProcessorIF.INGVTweetProcessor(),
+    #                                  words_to_track=['STIMA #PROVVISORIA'], user=['175041414'])
 def generic_tweet_coord_producer(queue_tweets=dataQueue):
     tweet_retreiver.get_tweets_coords(queue_tweets, tweetProcessorIF.genericTweetProcessor(),
                                       words_to_track=['terremoto'])
@@ -37,7 +37,7 @@ def consumer(queue_tweets=dataQueue):
                     coords.append(queue_tweets.get())
                 except queue.Empty:
                     pass
-            cluster = Clusterizer.Clusterizer(coords)
+            cluster = Clusterizer(coords)
             cluster.calculate_clusters()
             cluster.clusters2hulls()
             gdal_hulls = cluster.export_cluster_hulls_as_GDAL_poly()
@@ -66,7 +66,8 @@ def consumer(queue_tweets=dataQueue):
 
 if __name__ == "__main__":
     tweets = queue.Queue(1)
-    start_new_thread(INGV_coord_producer, (tweets,))
+    #start_new_thread(INGV_coord_producer, (tweets,))
+    start_new_thread(generic_tweet_coord_producer, (tweets,))
     start_new_thread(consumer, (tweets,))
     while True:
         pass

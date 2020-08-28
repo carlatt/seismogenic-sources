@@ -74,8 +74,16 @@ class Clusterizer(object):
         n_clusters = self.total_clusters
         cluster_points = self.cluster_points
         for i in range(n_clusters):
-            hull = ConvexHull(cluster_points[i])
-            hulls.append(hull)
+            # TODO: if cluster points is made out of 1 point only there is an error that must be managed
+            if len(cluster_points[i]) > 1:
+                hull = ConvexHull(cluster_points[i])
+                hulls.append(hull)
+            else:
+                self.total_clusters = self.total_clusters-1
+            '''else:
+                point = ogr.Geometry(ogr.wkbPoint)
+                point.AddPoint(cluster_points[i][0][0], cluster_points[i][0][1])
+                hull = point.Buffer(0.1)'''
         self.cluster_hulls = hulls
 
     def plot_cluster_hulls(self):
@@ -130,7 +138,7 @@ if __name__ == '__main__':
     # Generate sample data
     from sklearn.datasets import make_blobs
 
-    centers = [[13.39954,42.35055], [13.29924,42.35204], [13.33799,42.29093],
+    centers = [ [13.33799,42.29093],
                [12.51133,41.89193], [13.69901,42.66123], [14.20283,42.4584]]
     X, labels_true = make_blobs(n_samples=100, centers=centers, cluster_std=0.07,
                                 random_state=0)

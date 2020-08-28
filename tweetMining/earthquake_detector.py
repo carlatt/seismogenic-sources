@@ -24,7 +24,7 @@ class earthquake_detector_SA(object):
             with open('../data/SVM_state/vectorizer.pkl', 'rb') as fid:
                 self.vectorizer = cPickle.load(fid)
         else:
-            self.classifier = svm.SVC(kernel='rbf', C=0.5, gamma='scale')
+            self.classifier = svm.SVC(kernel='linear', C=1.0, gamma='auto')
             self.vectorizer = TfidfVectorizer(min_df=5,
                                               max_df=0.8,
                                               sublinear_tf=True,
@@ -55,12 +55,16 @@ class earthquake_detector_SA(object):
 if __name__ == "__main__":
     data = pd.read_csv("../data/earthquake_sentiment_analysis/earthquake_dataset_SA.csv")
 
-    train_data, test_data = train_test_split(data, test_size=0.2)
+    train_data, test_data = train_test_split(data, test_size=0.3)
 
 
     detector = earthquake_detector_SA()
-    detector.train(trainData=train_data)
+    #detector.train(trainData=train_data, save_to_file=True)
     predictions = detector.predict(test_data['Content'])
     report = classification_report(test_data['Label'], predictions, output_dict=True)
     print('positive: ', report['pos'])
     print('negative: ', report['neg'])
+    df = pd.DataFrame(['tua madre è troia'], columns=['Content'])
+    prediction = detector.predict(df['Content'])
+    print(type(df['Content']))
+    print(prediction)

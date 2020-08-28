@@ -7,9 +7,9 @@ if __name__ == "__main__":
     from sklearn.datasets import make_blobs
     # generate samples (representing emergency tweets) within cities.
     # samples represent coordinates within Rome, Teramo, Pescara and some neightborhoods within L'Aquila
-    centers = [[13.39954, 42.35055], [13.29924, 42.35204], [13.33799, 42.29093],
+    centers =  [[13.33799, 42.29093],
                [12.51133, 41.89193], [13.69901, 42.66123], [14.20283, 42.4584]]
-    X, labels_true = make_blobs(n_samples=100, centers=centers, cluster_std=0.07,
+    X, labels_true = make_blobs(n_samples=20, centers=centers, cluster_std=0.07,
                                 random_state=0)
 
 
