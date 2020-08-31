@@ -56,18 +56,37 @@ def find_nearest_sources(polygon,layer_seism):
 
     return sources
 
-def plot_Italia():
+def plot_Italia(area_of_interest):
+
+    envelope = getEnvelopeAsGeometry(area_of_interest.Buffer(0.5))
     ds = ogr.Open('data')  # file name and path
     layer = ds.GetLayer('ne_50m_admin_0_countries')
 
     layer.SetAttributeFilter("name = 'Italy'")  # there is only one feature in the layer with this condition!
     feature = layer.GetNextFeature()  # therefore, we are importing Germany
-    print(layer.GetFeatureCount())
-    vis = VisualLayer(layer, 'False')
-    vis.plot()
+    #print(layer.GetFeatureCount())
+    italy_geom=feature.GetGeometryRef()
+    intersection = italy_geom.Intersection(envelope)
+    plot_geometry(intersection, fillcolor='yellow', alpha=0.5)
+    #vis = VisualLayer(layer, 'False')
+    #vis.plot()
+
+def getEnvelopeAsGeometry(geom):
+    (minX, maxX, minY, maxY) = geom.GetEnvelope()
+    # Create ring
+    ring = ogr.Geometry(ogr.wkbLinearRing)
+    ring.AddPoint(minX, minY)
+    ring.AddPoint(maxX, minY)
+    ring.AddPoint(maxX, maxY)
+    ring.AddPoint(minX, maxY)
+    ring.AddPoint(minX, minY)
+    # Create polygon
+    poly_envelope = ogr.Geometry(ogr.wkbPolygon)
+    poly_envelope.AddGeometry(ring)
+
+    return poly_envelope
 
 def find_seismogenic_area(polygons,n):
-    plot_Italia()
 
     candidates = find_n_candidate_sources(polygons, n)
     union = ogr.Geometry(ogr.wkbPolygon)
@@ -78,8 +97,6 @@ def find_seismogenic_area(polygons,n):
         union = union.Union(candidate.Buffer(0.7))
 
     plot_geometry(union, fillcolor='red', alpha=0.1)
-
-
     return union
 
 
@@ -100,6 +117,14 @@ if __name__ == '__main__':
 
     seismogenic_sources = find_n_candidate_sources(polygons,n)
     seismogenic_area = find_seismogenic_area(polygons,n)
+    print(seismogenic_sources)
+
+    area_of_interest = ogr.Geometry(ogr.wkbPolygon)
+    for source in seismogenic_sources:
+        area_of_interest = area_of_interest.Union(source)
+    area_of_interest = area_of_interest.Union(seismogenic_area)
+    plot_Italia(area_of_interest)
+    plt.savefig('seismogenicSources_italy')
     plt.show()
     print(seismogenic_area)
 

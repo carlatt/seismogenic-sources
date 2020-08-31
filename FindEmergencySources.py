@@ -1,5 +1,6 @@
 from osgeo import osr, ogr
 from visuallayer import *
+from FindSeismogenicSources import *
 
 def find_nearest_capitals(source_polygon):
     """
@@ -109,8 +110,8 @@ if __name__ == '__main__':
     emergency_area=find_emergency_area(seismogenic_area)
 
     total_area = find_interested_area(seismogenic_area,emergency_area)
+    plot_Italia(total_area)
+    plt.savefig('EmergencySources_italy')
     plt.show()
-
-    #plt.show()
 
 

@@ -1,6 +1,5 @@
 from osgeo import osr, ogr
 from visuallayer import *
-from FindSeismogenicSources import *
 from FindEmergencySources import *
 
 if __name__ == '__main__':
@@ -29,6 +28,7 @@ if __name__ == '__main__':
 
     print (total_area)
 
+    plot_Italia(total_area)
     plot_rings(total_area, edgecolor="black",fillcolor="grey",
                  holeedgecolor='red',holefillcolor='white',
                     alpha=1,linewidth=0.7,fill=False)
