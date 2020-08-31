@@ -34,7 +34,7 @@ class Clusterizer(object):
         """
         scaler = StandardScaler()
         X = scaler.fit_transform(self.points)
-        db = DBSCAN(eps=0.25, min_samples=3).fit(X)
+        db = DBSCAN(eps=0.5, min_samples=1).fit(X)
         X = scaler.inverse_transform(X)
         core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
         core_samples_mask[db.core_sample_indices_] = True
@@ -75,15 +75,21 @@ class Clusterizer(object):
         cluster_points = self.cluster_points
         for i in range(n_clusters):
             # TODO: if cluster points is made out of 1 point only there is an error that must be managed
-            if len(cluster_points[i]) > 1:
+            if len(cluster_points[i]) > 2:
                 hull = ConvexHull(cluster_points[i])
-                hulls.append(hull)
             else:
-                self.total_clusters = self.total_clusters-1
-            '''else:
                 point = ogr.Geometry(ogr.wkbPoint)
                 point.AddPoint(cluster_points[i][0][0], cluster_points[i][0][1])
-                hull = point.Buffer(0.1)'''
+                buffer = point.Buffer(0.01)
+                boundary = buffer.Boundary()
+                bufPoints = []
+                for i in range(boundary.GetPointCount()):
+                    x, y, not_needed = boundary.GetPoint(i)
+                    bufPoints.append([x,y])
+                hull = ConvexHull(bufPoints)
+            '''else:
+                self.total_clusters = self.total_clusters-1'''
+            hulls.append(hull)
         self.cluster_hulls = hulls
 
     def plot_cluster_hulls(self):
@@ -93,7 +99,7 @@ class Clusterizer(object):
         """
         for i in range(self.total_clusters):
             hull = self.cluster_hulls[i]
-            points_in_cluster = np.array(self.cluster_points[i])
+            points_in_cluster = hull.points
             for simplex in hull.simplices:
                 plt.plot(points_in_cluster[simplex, 0], points_in_cluster[simplex, 1], 'b')
 
@@ -111,7 +117,7 @@ class Clusterizer(object):
         gdhulls = []
         for i in range(self.total_clusters):
             hull = self.cluster_hulls[i]
-            points_in_cluster = np.array(self.cluster_points[i])
+            points_in_cluster = hull.points
             ring = ogr.Geometry(ogr.wkbLinearRing)
 
             # get x and y coordinates (x and y are np.array)
@@ -140,7 +146,7 @@ if __name__ == '__main__':
 
     centers = [ [13.33799,42.29093],
                [12.51133,41.89193], [13.69901,42.66123], [14.20283,42.4584]]
-    X, labels_true = make_blobs(n_samples=100, centers=centers, cluster_std=0.07,
+    X, labels_true = make_blobs(n_samples=200, centers=centers, cluster_std=0.1,
                                 random_state=0)
 
     # use example
