@@ -21,17 +21,26 @@ if __name__ == "__main__":
     gdal_hulls = cluster.export_cluster_hulls_as_GDAL_poly()
 
     # We find the earthquake affected area
-    seismogenic_area = find_seismogenic_area(gdal_hulls, 6)
-    emergency_area = FindEmergencySources.find_emergency_area(seismogenic_area)
+    nSources = 6  # number of possible sources
 
-    total_area = find_interested_area(seismogenic_area, emergency_area)
-    plot_Italia(total_area)
-    plt.savefig('EmergencySources_italy')
+    SeismSources = SeismogenicSources(gdal_hulls, nSources)
+    seismogenic_area = SeismSources.findedArea
+
+    SeismSources.plot_seismogenic_data(plotItaly=True)
+    plt.savefig('seismogenicSources')
+    plt.show()
+
+    EmergSources = EmergencySources(seismogenic_area)
+    emergency_area = EmergSources.emergencyArea
+
+    EmergSources.plot_emergency_data(plotItaly=True)
+    plt.savefig('emergencySources')
     plt.show()
 
     # We find province capitals near earthquake affected (emergency) area from where
     # rescues come from
-    capitals = FindEmergencySources.find_emergency_sources(emergency_area)
+    capitals = EmergSources.emergencySources
+
 
     '''
     # We load a map of Italy containing highways and primary roads
