@@ -56,9 +56,11 @@ class genericTweetProcessor(tweetProcessorIF):
                 if tweet.coordinates is not None:
                     return tweet.coordinates
                 elif tweet.place is not None:
-                    # we have to convert this into coords
-                    zone = find_city(tweet.place)
-                    return [float(zone['longitude']), float(zone['latitude'])]
+                    # we have to take the coords in the bounding_box
+                    box = tweet.place.bounding_box.coordinates
+                    return box[0][0]
+                    #zone = find_city(tweet.place)
+                    #return [float(zone['longitude']), float(zone['latitude'])]
 
 
 class INGVTweetProcessor(tweetProcessorIF):
