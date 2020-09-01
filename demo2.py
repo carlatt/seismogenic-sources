@@ -4,7 +4,7 @@ from _thread import start_new_thread, allocate_lock
 import FindEmergencySources
 import RoadFinder
 from Clusterizer import Clusterizer
-from FindSeismogenicSources import find_seismogenic_area
+from FindEmergencySources import *
 from tweetMining import tweet_retreiver
 from tweetMining import tweetProcessorIF
 
@@ -46,14 +46,20 @@ def consumer(queue_tweets=dataQueue):
             seismogenic_area = find_seismogenic_area(gdal_hulls, 6)
             emergency_area = FindEmergencySources.find_emergency_area(seismogenic_area)
 
+            total_area = find_interested_area(seismogenic_area, emergency_area)
+            plot_Italia(total_area)
+            plt.savefig('EmergencySources_italy')
+            plt.show()
+
             # We find province capitals near earthquake affected (emergency) area from where
             # rescues come from
             capitals = FindEmergencySources.find_emergency_sources(emergency_area)
 
+            '''
             # We load a map of Italy containing highways and primary roads
-            map = RoadFinder.Italy_Road_Finder()
+            #map = RoadFinder.Italy_Road_Finder()
 
-            # we find and then plot the shortest path from capital cities to the emergency area centroid
+             we find and then plot the shortest path from capital cities to the emergency area centroid
             for capital in capitals:
                 source = capital.Centroid()
                 destination = emergency_area.Centroid()
@@ -61,7 +67,7 @@ def consumer(queue_tweets=dataQueue):
                 map.save_route()
                 # map.plot_route()
             map.plot_routes()
-
+            '''
 
 
 if __name__ == "__main__":
