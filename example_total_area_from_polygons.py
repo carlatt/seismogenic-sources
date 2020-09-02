@@ -12,23 +12,23 @@ if __name__ == '__main__':
     polygon2 = ogr.CreateGeometryFromWkt(p2)
     polygon3 = ogr.CreateGeometryFromWkt(p3)
     polygon4 = ogr.CreateGeometryFromWkt(p4)
-    polygons = [polygon1, polygon2, polygon3, polygon4]
+    clusters = [polygon1, polygon2, polygon3, polygon4]
 
-    n = 6  # number of possible sources
+    nSources = 6  # number of possible sources
 
-    seismogenic_area = find_seismogenic_area(polygons, n)
-    emergency_area = find_emergency_area(seismogenic_area)
+    #to find seismogenic sources
+    SeismSources = SeismogenicSources(clusters, nSources)
 
-    #To find the polygons of the emergency and seismogenic sources
-    seismogenic_sources = find_n_candidate_sources(polygons,n)
-    emergency_sources = find_emergency_sources(seismogenic_area)
+    #to find emergency sources
+    seismogenic_area=SeismSources.findedArea
+    EmergSources = EmergencySources(seismogenic_area)
 
-    #To find the total area
-    total_area = find_interested_area(seismogenic_area, emergency_area)
+    #plot figure
+    EmergSources.plot_emergency_data(plotItaly=True)
+    SeismSources.plot_seismogenic_data(plotItaly=False)
 
-    print (total_area)
+    total_area=EmergSources.totalArea
 
-    plot_Italia(total_area)
     plot_rings(total_area, edgecolor="black",fillcolor="grey",
                  holeedgecolor='red',holefillcolor='white',
                     alpha=1,linewidth=0.7,fill=False)

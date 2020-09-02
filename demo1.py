@@ -1,9 +1,7 @@
 import Clusterizer
 import FindEmergencySources
 import RoadFinder
-from FindSeismogenicSources import find_seismogenic_area, plot_Italia
-import matplotlib.pyplot as plt
-
+from FindSeismogenicSources import find_seismogenic_area
 
 if __name__ == "__main__":
     from sklearn.datasets import make_blobs
@@ -11,7 +9,7 @@ if __name__ == "__main__":
     # samples represent coordinates within Rome, Teramo, Pescara and  L'Aquila
     centers = [[13.33799, 42.29093],
                [12.51133, 41.89193], [13.69901, 42.66123], [14.20283, 42.4584]]
-    X, labels_true = make_blobs(n_samples=2, centers=centers, cluster_std=0.5,
+    X, labels_true = make_blobs(n_samples=20, centers=centers, cluster_std=0.5,
                                 random_state=0)
 
 
@@ -25,8 +23,7 @@ if __name__ == "__main__":
     # We find the earthquake affected area
     seismogenic_area = find_seismogenic_area(gdal_hulls, 6)
     emergency_area = FindEmergencySources.find_emergency_area(seismogenic_area)
-    plot_Italia(emergency_area)
-    plt.show()
+
     # We find province capitals near earthquake affected (emergency) area from where
     # rescues come from
     capitals = FindEmergencySources.find_emergency_sources(emergency_area)

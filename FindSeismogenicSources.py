@@ -1,77 +1,111 @@
 from osgeo import osr, ogr
 from visuallayer import *
 
-def find_candidate_sources(polygons):
-    # load the composite seismologic sources from the shapefile 'CSSPLN321.shp''
-    driver = ogr.GetDriverByName("ESRI Shapefile")
-    file_seism = 'data/INGV/ISS321.shp'
-    vector_seism = driver.Open(file_seism, 0)
-    layer_seism = vector_seism.GetLayer(0)
+class SeismogenicSources:
+    def __init__(self, clusters, nSources):
+        self.clusters = clusters
+        self.numberOfSources = nSources
+        self.distance = 0.7
+        self.findedSources = self.find_n_candidate_sources(clusters,nSources)
+        self.findedArea = self.find_seismogenic_area(clusters,nSources)
+        self.areaOfInterest= self.find_area_of_interest()
 
-    # Find nearest seismologic sources for each area (e.g. with dist of 20 km)
-    candidatesCount = {}
-    candidates =[]
-    for polygon in polygons:
-        sources = find_nearest_sources(polygon,layer_seism)
-        for source in sources:
-            sourceID = source.GetField(0)
-            if sourceID in candidatesCount:
-                candidatesCount[sourceID]=candidatesCount[sourceID]+1
-            else:
-                candidatesCount[sourceID]=1
-                source_geom = source.GetGeometryRef().GetGeometryRef(0)
-                source_poly = ogr.Geometry(ogr.wkbPolygon)
-                source_poly.AddGeometry(source_geom)
-                candidates.append(source_poly)
+    def find_candidate_sources(self, polygons):
+        # load the composite seismologic sources from the shapefile 'CSSPLN321.shp''
+        driver = ogr.GetDriverByName("ESRI Shapefile")
+        file_seism = 'data/INGV/ISS321.shp'
+        vector_seism = driver.Open(file_seism, 0)
+        layer_seism = vector_seism.GetLayer(0)
 
-
-    sortedCandidatesCount = sorted(candidatesCount.items(), key=lambda x: x[1], reverse=True)
-    #plt.show()
-    return sortedCandidatesCount, candidates
-
-def find_n_candidate_sources(polygons,n):
-    candidatesCount, candidates = find_candidate_sources(polygons)
-    n_candidates = []
-    for i in range(0, n):
-        n_candidates.append(candidates[i])
-    return  n_candidates
+        # Find nearest seismologic sources for each area (e.g. with dist of 20 km)
+        candidatesCount = {}
+        candidates =[]
+        for polygon in polygons:
+            sources = self.find_nearest_sources(polygon,layer_seism)
+            for source in sources:
+                sourceID = source.GetField(0)
+                if sourceID in candidatesCount:
+                    candidatesCount[sourceID]=candidatesCount[sourceID]+1
+                else:
+                    candidatesCount[sourceID]=1
+                    source_geom = source.GetGeometryRef().GetGeometryRef(0)
+                    source_poly = ogr.Geometry(ogr.wkbPolygon)
+                    source_poly.AddGeometry(source_geom)
+                    candidates.append(source_poly)
 
 
-def find_nearest_sources(polygon,layer_seism):
+        sortedCandidatesCount = sorted(candidatesCount.items(), key=lambda x: x[1], reverse=True)
+        return sortedCandidatesCount, candidates
 
-    area = polygon.Buffer(0.7)
+    def find_n_candidate_sources(self, polygons,n):
+        candidatesCount, candidates = self.find_candidate_sources(polygons)
+        n_candidates = []
+        for i in range(0, n):
+            n_candidates.append(candidates[i])
+        return  n_candidates
 
-    plot_geometry(polygon, fillcolor='green', alpha=1)
-    plot_geometry(area, fillcolor='grey', alpha=0.2)
-    sources=[]
-    for source in layer_seism:
-        source_geom = source.GetGeometryRef().GetGeometryRef(0)
-        source_poly = ogr.Geometry(ogr.wkbPolygon)
-        source_poly.AddGeometry(source_geom)
-        #plot_geometry(source_poly, fillcolor='blue', alpha=0.2)
+    def find_nearest_sources(self, polygon,layer_seism):
 
-        if area.Intersects(source_poly):
-            sources.append(source)
-            plot_geometry(source_poly, fillcolor='blue', alpha=0.2)
+        area = polygon.Buffer(self.distance)
 
-    return sources
+        sources=[]
+        for source in layer_seism:
+            source_geom = source.GetGeometryRef().GetGeometryRef(0)
+            source_poly = ogr.Geometry(ogr.wkbPolygon)
+            source_poly.AddGeometry(source_geom)
 
-def plot_Italia(area_of_interest):
+            if area.Intersects(source_poly):
+                sources.append(source)
 
-    envelope = getEnvelopeAsGeometry(area_of_interest.Buffer(0.5))
+        return sources
+
+    def find_seismogenic_area(self, polygons,n):
+
+        candidates = self.find_n_candidate_sources(polygons, n)
+        union = ogr.Geometry(ogr.wkbPolygon)
+
+        #find a 15km buffer for each candidate and dothe union of them
+        for candidate in candidates:
+            union = union.Union(candidate.Buffer(self.distance))
+
+        return union
+
+    def find_area_of_interest(self):
+        area_of_interest = ogr.Geometry(ogr.wkbPolygon)
+        for source in self.findedSources:
+            area_of_interest = area_of_interest.Union(source)
+        area_of_interest = area_of_interest.Union(self.findedArea)
+        return area_of_interest
+
+    def plot_seismogenic_data(self, plotItaly):
+        if (plotItaly == True):
+            #plot italy in the area of interest
+            plot_italy(self.areaOfInterest)
+
+        #plot clusters
+        for cluster in self.clusters:
+            plot_geometry(cluster, fillcolor='green', alpha=1)
+            plot_geometry(cluster.Buffer(self.distance), fillcolor='grey', alpha=0.2)
+
+        #plot the possible seismogenic area
+        plot_geometry(self.findedArea, fillcolor='red', alpha=0.1)
+
+        #plot the first n possible seismogenic source
+        for source in self.findedSources:
+            plot_geometry(source, fillcolor='blue', alpha=0.5)
+
+def plot_italy(area_of_interest):
+    envelope = get_envelope_as_geometry(area_of_interest.Buffer(0.3))
     ds = ogr.Open('data')  # file name and path
     layer = ds.GetLayer('ne_50m_admin_0_countries')
-
     layer.SetAttributeFilter("name = 'Italy'")  # there is only one feature in the layer with this condition!
     feature = layer.GetNextFeature()  # therefore, we are importing Germany
-    #print(layer.GetFeatureCount())
+
     italy_geom=feature.GetGeometryRef()
     intersection = italy_geom.Intersection(envelope)
-    plot_geometry(intersection, fillcolor='yellow', alpha=0.5)
-    #vis = VisualLayer(layer, 'False')
-    #vis.plot()
+    plot_geometry(intersection, fillcolor='gold', alpha=0.5)
 
-def getEnvelopeAsGeometry(geom):
+def get_envelope_as_geometry(geom):
     (minX, maxX, minY, maxY) = geom.GetEnvelope()
     # Create ring
     ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -86,20 +120,6 @@ def getEnvelopeAsGeometry(geom):
 
     return poly_envelope
 
-def find_seismogenic_area(polygons,n):
-
-    candidates = find_n_candidate_sources(polygons, n)
-    union = ogr.Geometry(ogr.wkbPolygon)
-
-    #find a 15km buffer for each candidate and dothe union of them
-    for candidate in candidates:
-        #plot_geometry(candidate, fillcolor='blue', alpha=1)
-        union = union.Union(candidate.Buffer(0.7))
-
-    plot_geometry(union, fillcolor='red', alpha=0.1)
-    return union
-
-
 if __name__ == '__main__':
 
     p1='POLYGON((13.5068345450051 42.453405113893 0, 13.4096230499813 42.4523491454874 0, 13.2115443247965 42.4064643249082 0, 13.1851261157124 42.3844347578868 0, 13.1862671506709 42.337148180385 0, 13.2258412924453 42.2526387443975 0, 13.2423197602569 42.2312002178368 0, 13.3705863707811 42.1833929419606 0, 13.4698105487939 42.19658686572 0, 13.5302690593105 42.2821405484086 0, 13.5230236642177 42.3785610045857 0, 13.5068345450051 42.453405113893 0))'
@@ -111,24 +131,15 @@ if __name__ == '__main__':
     polygon2 = ogr.CreateGeometryFromWkt(p2)
     polygon3 = ogr.CreateGeometryFromWkt(p3)
     polygon4 = ogr.CreateGeometryFromWkt(p4)
-    polygons=[polygon1,polygon2,polygon3,polygon4]
+    clusters=[polygon1,polygon2,polygon3,polygon4]
 
-    n= 6 #number of possible sources
+    nSources= 6 #number of possible sources
 
-    seismogenic_sources = find_n_candidate_sources(polygons,n)
-    seismogenic_area = find_seismogenic_area(polygons,n)
-    print(seismogenic_sources)
+    SeismSources = SeismogenicSources(clusters, nSources)
 
-    area_of_interest = ogr.Geometry(ogr.wkbPolygon)
-    for source in seismogenic_sources:
-        area_of_interest = area_of_interest.Union(source)
-    area_of_interest = area_of_interest.Union(seismogenic_area)
-    plot_Italia(area_of_interest)
-    plt.savefig('seismogenicSources_italy')
+    print(SeismSources.findedSources)
+    print(SeismSources.findedArea)
+
+    SeismSources.plot_seismogenic_data(plotItaly=True)
+    plt.savefig('seismogenicSources')
     plt.show()
-    print(seismogenic_area)
-
-    # candidatesCount, candidates = find_candidate_sources(polygons)
-    # print (candidatesCount)
-
-
