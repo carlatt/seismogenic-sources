@@ -1,5 +1,6 @@
 import queue
 from _thread import start_new_thread, allocate_lock
+import matplotlib.pyplot as plt
 
 import FindEmergencySources
 import RoadFinder
@@ -37,6 +38,7 @@ def consumer(queue_tweets=dataQueue):
                     coords.append(queue_tweets.get())
                 except queue.Empty:
                     pass
+            print("plot")
             cluster = Clusterizer(coords)
             cluster.calculate_clusters()
             cluster.clusters2hulls()
@@ -49,6 +51,7 @@ def consumer(queue_tweets=dataQueue):
             # We find province capitals near earthquake affected (emergency) area from where
             # rescues come from
             capitals = FindEmergencySources.find_emergency_sources(emergency_area)
+            plt.show()
 
             # We load a map of Italy containing highways and primary roads
             map = RoadFinder.Italy_Road_Finder()
@@ -65,9 +68,8 @@ def consumer(queue_tweets=dataQueue):
 
 
 if __name__ == "__main__":
-    tweets = queue.Queue(1)
-    #start_new_thread(INGV_coord_producer, (tweets,))
+    tweets = queue.Queue(2)
+    start_new_thread(INGV_coord_producer, (tweets,))
     start_new_thread(generic_tweet_coord_producer, (tweets,))
-    start_new_thread(consumer, (tweets,))
-    while True:
-        pass
+    #start_new_thread(consumer, (tweets,))
+    consumer(tweets)

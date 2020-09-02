@@ -47,18 +47,21 @@ class genericTweetProcessor(tweetProcessorIF):
         super().__init__()
         self.SA = earthquake_detector.earthquake_detector_SA()
     def gimme_coords(self, tweet):
-        print(type(tweet.text))
+        print(tweet.text)
         data = pd.read_csv("./data/earthquake_sentiment_analysis/earthquake_dataset_SA.csv")
         self.SA.train(trainData=data)
         predictions = self.SA.predict([tweet.text])
         for pred in predictions:
+            print(pred)
             if pred == 'pos':
                 if tweet.coordinates is not None:
                     return tweet.coordinates
                 elif tweet.place is not None:
                     # we have to take the coords in the bounding_box
                     box = tweet.place.bounding_box.coordinates
-                    return box[0][0]
+                    x = (box[0][1][0]-box[0][0][0])/2
+                    y = (box[0][2][1]-box[0][1][1])/2
+                    return (x,y)
                     #zone = find_city(tweet.place)
                     #return [float(zone['longitude']), float(zone['latitude'])]
 
@@ -67,6 +70,7 @@ class INGVTweetProcessor(tweetProcessorIF):
     def __init__(self):
         super().__init__()
     def gimme_coords(self, tweet):
+        print(tweet.text)
         if tweet.coordinates is not None:
             return tweet.coordinates
         elif tweet.place is not None:
@@ -76,6 +80,7 @@ class INGVTweetProcessor(tweetProcessorIF):
             res = tweet.text.split('prov/zona')
             res = res[1].split()
             place = res[0]
+            print(place)
             #then we have to convert place to coords as above
             zone = find_city(place)
         return [float(zone['longitude']), float(zone['latitude'])]

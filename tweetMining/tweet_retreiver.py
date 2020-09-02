@@ -13,7 +13,8 @@ class Stream2Queue(tweepy.StreamListener):
         self.processor = tweet_processor
 
     def on_status(self, status):
-        self.tweets.put(self.processor.gimme_coords(status))
+        if self.processor.gimme_coords(status) is not None:
+            self.tweets.put(self.processor.gimme_coords(status))
 
     def queue_get_all(self):
         items = []
