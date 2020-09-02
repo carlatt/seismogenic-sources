@@ -24,7 +24,7 @@ class earthquake_detector_SA(object):
             with open('../data/SVM_state/vectorizer.pkl', 'rb') as fid:
                 self.vectorizer = cPickle.load(fid)
         else:
-            self.classifier = svm.SVC(kernel='linear', C=1.0, gamma='auto')
+            self.classifier = svm.SVC(kernel='linear', C=1.5, gamma='auto')
             self.vectorizer = TfidfVectorizer(min_df=5,
                                               max_df=0.8,
                                               sublinear_tf=True,
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     report = classification_report(test_data['Label'], predictions, output_dict=True)
     print('positive: ', report['pos'])
     print('negative: ', report['neg'])
-    df = pd.DataFrame(['tua madre è troia'], columns=['Content'])
+    df = pd.DataFrame(['bravo'], columns=['Content'])
     prediction = detector.predict(df['Content'])
     print(type(df['Content']))
     print(prediction)
