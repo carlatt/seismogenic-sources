@@ -65,7 +65,7 @@ def consumer(queue_tweets=dataQueue):
 
 
             # We load a map of Italy containing highways and primary roads
-            #map = RoadFinder.Italy_Road_Finder()
+            map = RoadFinder.Italy_Road_Finder()
 
             #we find and then plot the shortest path from capital cities to the emergency area centroid
             for capital in capitals:
@@ -78,7 +78,8 @@ def consumer(queue_tweets=dataQueue):
 
 
 if __name__ == "__main__":
-    tweets = queue.Queue(2)
+    # queue length tell us how much tweet we want to consider before calculating seismogenic sources
+    tweets = queue.Queue(1)
     start_new_thread(INGV_coord_producer, (tweets,))
     start_new_thread(generic_tweet_coord_producer, (tweets,))
     #start_new_thread(consumer, (tweets,))

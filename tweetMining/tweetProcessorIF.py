@@ -47,10 +47,14 @@ class genericTweetProcessor(tweetProcessorIF):
         super().__init__()
         self.SA = earthquake_detector.earthquake_detector_SA()
     def gimme_coords(self, tweet):
-        print(tweet.text)
+        try:
+            text = tweet.extended_tweet["full_text"]
+        except AttributeError:
+            text = tweet.text
+        print(text)
         data = pd.read_csv("./data/earthquake_sentiment_analysis/earthquake_dataset_SA.csv")
         self.SA.train(trainData=data)
-        predictions = self.SA.predict([tweet.text])
+        predictions = self.SA.predict([text])
         for pred in predictions:
             print(pred)
             if pred == 'pos':
