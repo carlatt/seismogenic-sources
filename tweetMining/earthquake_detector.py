@@ -13,18 +13,14 @@ class earthquake_detector_SA(object):
     used to check if a tweet talks about an earthquake happening now or not
     '''
     def __init__(self):
-        self.vectorizer = TfidfVectorizer(min_df=5,
-                                          max_df=0.8,
-                                          sublinear_tf=True,
-                                          use_idf=True)
-        if os.path.isfile('../data/SVM_state/classifier.pkl') and \
-                os.path.isfile('../data/SVM_state/vectorizer.pkl'):
-            with open('../data/SVM_state/classifier.pkl', 'rb') as fid:
+        if os.path.isfile('./data/SVM_state/classifier.pkl') and \
+                os.path.isfile('./data/SVM_state/vectorizer.pkl'):
+            with open('./data/SVM_state/classifier.pkl', 'rb') as fid:
                 self.classifier = cPickle.load(fid)
-            with open('../data/SVM_state/vectorizer.pkl', 'rb') as fid:
+            with open('./data/SVM_state/vectorizer.pkl', 'rb') as fid:
                 self.vectorizer = cPickle.load(fid)
         else:
-            self.classifier = svm.SVC(kernel='linear', C=1.5, gamma='auto')
+            self.classifier = svm.SVC(kernel='linear', C=3.3, gamma='auto')
             self.vectorizer = TfidfVectorizer(min_df=5,
                                               max_df=0.8,
                                               sublinear_tf=True,
@@ -55,7 +51,7 @@ class earthquake_detector_SA(object):
 if __name__ == "__main__":
     data = pd.read_csv("../data/earthquake_sentiment_analysis/earthquake_dataset_SA.csv")
 
-    train_data, test_data = train_test_split(data, test_size=0.3)
+    train_data, test_data = train_test_split(data, test_size=0.9)
 
 
     detector = earthquake_detector_SA()
@@ -64,7 +60,8 @@ if __name__ == "__main__":
     report = classification_report(test_data['Label'], predictions, output_dict=True)
     print('positive: ', report['pos'])
     print('negative: ', report['neg'])
-    df = pd.DataFrame(['bravo'], columns=['Content'])
+    string = 'ha fatto il terremoto'
+    df = pd.DataFrame([string], columns=['Content'])
     prediction = detector.predict(df['Content'])
-    print(type(df['Content']))
+    print()
     print(prediction)

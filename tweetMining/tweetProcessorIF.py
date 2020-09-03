@@ -1,7 +1,7 @@
 from tweetMining import earthquake_detector
 import pandas as pd
 '''
-utilities tha can retreive a location from a tweet
+utilities to retreive a location from a tweet
 '''
 def find_city(city_name):
     with open('data/cities500/cities500.txt', 'r', encoding='utf') as f:
@@ -47,13 +47,20 @@ class genericTweetProcessor(tweetProcessorIF):
         super().__init__()
         self.SA = earthquake_detector.earthquake_detector_SA()
     def gimme_coords(self, tweet):
-        try:
-            text = tweet.extended_tweet["full_text"]
-        except AttributeError:
-            text = tweet.text
+        if hasattr(tweet, "retweeted_status"):  # Check if Retweet
+            try:
+                text = tweet.retweeted_status.extended_tweet["full_text"]
+            except AttributeError:
+                text = tweet.retweeted_status.text
+        else:
+            try:
+                text = tweet.extended_tweet["full_text"]
+            except AttributeError:
+                text = tweet.text
+
         print(text)
         data = pd.read_csv("./data/earthquake_sentiment_analysis/earthquake_dataset_SA.csv")
-        self.SA.train(trainData=data)
+        #self.SA.train(trainData=data)
         predictions = self.SA.predict([text])
         for pred in predictions:
             print(pred)
@@ -65,7 +72,7 @@ class genericTweetProcessor(tweetProcessorIF):
                     box = tweet.place.bounding_box.coordinates
                     x = (box[0][1][0]-box[0][0][0])/2
                     y = (box[0][2][1]-box[0][1][1])/2
-                    return (x,y)
+                    return [x,y]
                     #zone = find_city(tweet.place)
                     #return [float(zone['longitude']), float(zone['latitude'])]
 
@@ -75,18 +82,12 @@ class INGVTweetProcessor(tweetProcessorIF):
         super().__init__()
     def gimme_coords(self, tweet):
         print(tweet.text)
-        if tweet.coordinates is not None:
-            return tweet.coordinates
-        elif tweet.place is not None:
-            # we have to convert this into coords
-            zone = find_city(tweet.place)
-        else:
-            res = tweet.text.split('prov/zona')
-            res = res[1].split()
-            place = res[0]
-            print(place)
-            #then we have to convert place to coords as above
-            zone = find_city(place)
+        res = tweet.text.split('prov/zona')
+        res = res[1].split()
+        place = res[0]
+        print(place)
+        # then we have to convert place to coords as above
+        zone = find_city(place)
         return [float(zone['longitude']), float(zone['latitude'])]
 
 if __name__ == "__main__":
