@@ -49,8 +49,19 @@ class Italy_Road_Finder(object):
         self.route_cache.append(self.route)
     def plot_route(self):
         fig, ax = ox.plot_graph_route(self.map, self.route, route_color= 'b')
-    def plot_routes(self):
-        fig, ax = ox.plot_graph_routes(self.map, self.route_cache, route_color='g')
+    def plot_routes(self, area_of_interest):
+        boundary = area_of_interest.Boundary()
+        lon = []
+        lat = []
+        for i in range(boundary.GetPointCount()):
+            x, y, not_needed = boundary.GetPoint(i)
+            lon.append(x)
+            lat.append(y)
+        east = max(lon)+1
+        west = min(lon)-1
+        north = max(lat)+1
+        south = min(lat)-1
+        fig, ax = ox.plot_graph_routes(self.map, self.route_cache, route_color='b', route_alpha=1,  bbox=(north, south, east, west))
 
 
 

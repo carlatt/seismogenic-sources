@@ -76,7 +76,7 @@ def consumer(queue_tweets=dataQueue):
                 map.find_route(source.ExportToWkt(), destination.ExportToWkt())
                 map.save_route()
                 # map.plot_route()
-            map.plot_routes()
+            map.plot_routes(EmergSources.totalArea)
 
 
 

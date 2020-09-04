@@ -74,7 +74,6 @@ class Clusterizer(object):
         n_clusters = self.total_clusters
         cluster_points = self.cluster_points
         for i in range(n_clusters):
-            # TODO: if cluster points is made out of 1 point only there is an error that must be managed
             if len(cluster_points[i]) > 2:
                 hull = ConvexHull(cluster_points[i])
             else:
