@@ -37,10 +37,10 @@ class SeismogenicSources:
         sortedCandidatesCount = sorted(candidatesCount.items(), key=lambda x: x[1], reverse=True)
         return sortedCandidatesCount, candidates
 
-    def find_n_candidate_sources(self, polygons,n):
+    def find_n_candidate_sources(self, polygons, n):
         candidatesCount, candidates = self.find_candidate_sources(polygons)
         n_candidates = []
-        for i in range(0, n):
+        for i in range(0, min(n,len(candidatesCount))):
             n_candidates.append(candidates[i])
         return  n_candidates
 
@@ -103,6 +103,7 @@ def plot_italy(area_of_interest):
 
     italy_geom=feature.GetGeometryRef()
     intersection = italy_geom.Intersection(envelope)
+
     plot_geometry(intersection, fillcolor='gold', alpha=0.5)
 
 def get_envelope_as_geometry(geom):
