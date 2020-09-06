@@ -65,9 +65,7 @@ class genericTweetProcessor(tweetProcessorIF):
         for pred in predictions:
             print(pred)
             if pred == 'pos':
-                if tweet.coordinates is not None:
-                    return tweet.coordinates
-                elif tweet.place is not None:
+                if tweet.place is not None:
                     # we have to take the coords in the bounding_box
                     box = tweet.place.bounding_box.coordinates
                     x = (box[0][1][0]-box[0][0][0])/2
