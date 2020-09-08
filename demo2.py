@@ -32,6 +32,7 @@ def generic_tweet_coord_producer(queue_tweets=dataQueue):
 # Function called by the consumer threads
 def consumer(queue_tweets=dataQueue):
     while True:
+        # we check every 2 mins
         time.sleep(120)
         coords = []
         while not queue_tweets.empty():

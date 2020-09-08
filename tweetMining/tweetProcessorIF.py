@@ -59,8 +59,6 @@ class genericTweetProcessor(tweetProcessorIF):
                 text = tweet.text
 
         print(text)
-        data = pd.read_csv("./data/earthquake_sentiment_analysis/earthquake_dataset_SA.csv")
-        #self.SA.train(trainData=data)
         predictions = self.SA.predict([text])
         for pred in predictions:
             print(pred)
@@ -68,9 +66,12 @@ class genericTweetProcessor(tweetProcessorIF):
                 if tweet.place is not None:
                     # we have to take the coords in the bounding_box
                     box = tweet.place.bounding_box.coordinates
-                    x = (box[0][1][0]-box[0][0][0])/2
-                    y = (box[0][2][1]-box[0][1][1])/2
-                    return [x,y]
+                    # x = (box[0][2][0]-box[0][1][0])/2
+                    # y = (box[0][2][1]-box[0][3][1])/2
+                    #return [float(x),float(y)]
+                    # for sake of simplicity we use one coordinate from bounding box of the city
+                    coords = box[0][0]
+                    return coords
                     #zone = find_city(tweet.place)
                     #return [float(zone['longitude']), float(zone['latitude'])]
 
