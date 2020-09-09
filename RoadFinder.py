@@ -7,7 +7,8 @@ from pathlib import Path
 
 class Italy_Road_Finder(object):
     def __init__(self):
-        ox.config(use_cache=True, log_console=True)
+        # uncomment for log console
+        #ox.config(use_cache=True, log_console=True)
         self.italy_gdf = ox.gdf_from_place('Italy')
         self.map = None
         self.route = None
