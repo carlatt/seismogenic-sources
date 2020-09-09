@@ -1,7 +1,5 @@
 import queue
 from _thread import start_new_thread, allocate_lock
-import time
-
 
 import FindEmergencySources
 import RoadFinder
@@ -32,15 +30,13 @@ def generic_tweet_coord_producer(queue_tweets=dataQueue):
 # Function called by the consumer threads
 def consumer(queue_tweets=dataQueue):
     while True:
-        # we check every 2 mins
-        time.sleep(120)
         coords = []
-        while not queue_tweets.empty():
-            try:
-                coords.append(queue_tweets.get())
-            except queue.Empty:
-                pass
-        if len(coords) != 0:
+        if queue_tweets.full():
+            while not queue_tweets.empty():
+                try:
+                    coords.append(queue_tweets.get())
+                except queue.Empty:
+                    pass
             cluster = Clusterizer(coords)
             cluster.calculate_clusters()
             cluster.clusters2hulls()
@@ -50,7 +46,7 @@ def consumer(queue_tweets=dataQueue):
             nSources = 6  # number of possible sources
 
             SeismSources = SeismogenicSources(gdal_hulls, nSources)
-            seismogenic_area = SeismSources.findedArea
+            seismogenic_area = SeismSources.foundArea
 
             SeismSources.plot_seismogenic_data(plotItaly=True)
             plt.savefig('seismogenicSources')
@@ -67,23 +63,23 @@ def consumer(queue_tweets=dataQueue):
             # rescues come from
             capitals = EmergSources.emergencySources
 
+
             # We load a map of Italy containing highways and primary roads
             map = RoadFinder.Italy_Road_Finder()
 
-            # we find and then plot the shortest path from capital cities to the emergency area centroid
+            #we find and then plot the shortest path from capital cities to the emergency area centroid
             for capital in capitals:
                 source = capital.Centroid()
                 destination = emergency_area.Centroid()
                 map.find_route(source.ExportToWkt(), destination.ExportToWkt())
                 map.save_route()
                 # map.plot_route()
-            map.plot_routes(EmergSources.totalArea)
-
-
+            map.plot_routes()
 
 
 if __name__ == "__main__":
-    tweets = queue.Queue()
+    tweets = queue.Queue(2)
     start_new_thread(INGV_coord_producer, (tweets,))
     start_new_thread(generic_tweet_coord_producer, (tweets,))
+    #start_new_thread(consumer, (tweets,))
     consumer(tweets)

@@ -67,14 +67,14 @@ class EmergencySources:
             plot_italy(self.totalArea)
 
         #plot seismogenic area
-        plot_geometry(self.seismogenicArea, fillcolor='red', alpha=0.1)
+        plot_geometry(self.seismogenicArea, fillcolor='red', alpha=0.2)
 
         #plot total area
-        plot_geometry(self.totalArea, fillcolor='green', alpha=0.1)
+        #plot_geometry(self.totalArea, fillcolor='green', alpha=0.1)
 
         #plot emergency sources
         for source in self.emergencySources:
-            plot_geometry(source, fillcolor='blue', alpha=0.7)
+            plot_geometry(source, fillcolor='green', alpha=0.7)
 
 def switch_lat_lon(geom):
     pointList = []

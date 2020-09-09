@@ -6,8 +6,8 @@ class SeismogenicSources:
         self.clusters = clusters
         self.numberOfSources = nSources
         self.distance = 0.7
-        self.findedSources = self.find_n_candidate_sources(clusters,nSources)
-        self.findedArea = self.find_seismogenic_area(clusters,nSources)
+        self.foundSources = self.find_n_candidate_sources(clusters, nSources)
+        self.foundArea = self.find_seismogenic_area(clusters, nSources)
         self.areaOfInterest= self.find_area_of_interest()
 
     def find_candidate_sources(self, polygons):
@@ -72,9 +72,9 @@ class SeismogenicSources:
 
     def find_area_of_interest(self):
         area_of_interest = ogr.Geometry(ogr.wkbPolygon)
-        for source in self.findedSources:
+        for source in self.foundSources:
             area_of_interest = area_of_interest.Union(source)
-        area_of_interest = area_of_interest.Union(self.findedArea)
+        area_of_interest = area_of_interest.Union(self.foundArea)
         return area_of_interest
 
     def plot_seismogenic_data(self, plotItaly):
@@ -88,10 +88,10 @@ class SeismogenicSources:
             plot_geometry(cluster.Buffer(self.distance), fillcolor='grey', alpha=0.2)
 
         #plot the possible seismogenic area
-        plot_geometry(self.findedArea, fillcolor='red', alpha=0.1)
+        plot_geometry(self.foundArea, fillcolor='red', alpha=0.1)
 
         #plot the first n possible seismogenic source
-        for source in self.findedSources:
+        for source in self.foundSources:
             plot_geometry(source, fillcolor='blue', alpha=0.5)
 
 def plot_italy(area_of_interest):
@@ -138,8 +138,8 @@ if __name__ == '__main__':
 
     SeismSources = SeismogenicSources(clusters, nSources)
 
-    print(SeismSources.findedSources)
-    print(SeismSources.findedArea)
+    print(SeismSources.foundSources)
+    print(SeismSources.foundArea)
 
     SeismSources.plot_seismogenic_data(plotItaly=True)
     plt.savefig('seismogenicSources')

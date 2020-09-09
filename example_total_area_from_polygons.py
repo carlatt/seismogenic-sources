@@ -20,7 +20,7 @@ if __name__ == '__main__':
     SeismSources = SeismogenicSources(clusters, nSources)
 
     #to find emergency sources
-    seismogenic_area=SeismSources.findedArea
+    seismogenic_area=SeismSources.foundArea
     EmergSources = EmergencySources(seismogenic_area)
 
     #plot figure
