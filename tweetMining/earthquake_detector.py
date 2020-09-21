@@ -11,9 +11,16 @@ from sklearn.model_selection import train_test_split
 class earthquake_detector_SA(object):
     '''
     used to check if a tweet talks about an earthquake happening now or not
+    using sentiment analysis
     '''
-    def __init__(self):
-        if os.path.isfile('./data/SVM_state/classifier.pkl') and \
+    def __init__(self, get_existing = True):
+        '''
+        checks if a SVM and a corresponding vectorizer exists.
+        if so it loads their states
+        otherwise it initializes two new one
+        '''
+        if get_existing and \
+                os.path.isfile('./data/SVM_state/classifier.pkl') and \
                 os.path.isfile('./data/SVM_state/vectorizer.pkl'):
             with open('./data/SVM_state/classifier.pkl', 'rb') as fid:
                 self.classifier = cPickle.load(fid)
@@ -30,6 +37,7 @@ class earthquake_detector_SA(object):
         '''
 
         @param trainData: pandas csv with labels 'Content' (tweet), 'Label'
+        @param save_to_file: bool
         @return:
         '''
         train_vectors = self.vectorizer.fit_transform(trainData['Content'])
@@ -49,13 +57,16 @@ class earthquake_detector_SA(object):
         labels = self.classifier.predict(test_vectors)
         return labels
 if __name__ == "__main__":
+    '''
+    execute this to train a new classifier
+    '''
     data = pd.read_csv("../data/earthquake_sentiment_analysis/earthquake_dataset_SA.csv")
 
     train_data, test_data = train_test_split(data, test_size=0.9)
 
 
     detector = earthquake_detector_SA()
-    #detector.train(trainData=train_data, save_to_file=True)
+    detector.train(trainData=train_data, save_to_file=True)
     predictions = detector.predict(test_data['Content'])
     report = classification_report(test_data['Label'], predictions, output_dict=True)
     print('positive: ', report['pos'])

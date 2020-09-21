@@ -3,7 +3,6 @@ from _thread import start_new_thread, allocate_lock
 import time
 
 
-import FindEmergencySources
 import RoadFinder
 from Clusterizer import Clusterizer
 from FindEmergencySources import *
@@ -15,22 +14,36 @@ safeprint = allocate_lock()
 # Create a queue object
 dataQueue = queue.Queue()
 
-
-# Function called by the producer thread
-def generic_producer(tweet_processor, queue_tweets=dataQueue, words_to_track=['a'], user=None):
-    tweet_retreiver.get_tweets_coords(queue_tweets, tweet_processor, words_to_track=words_to_track, user=user)
-
 def INGV_coord_producer(queue_tweets=dataQueue):
+    '''
+    this function is used to follow INGV user and retrieve a location coordinates
+    from real time tweets
+    @param queue_tweets: data queue where tweets coords are stored
+    @return:
+    '''
     tweet_retreiver.get_tweets_coords(queue_tweets, tweetProcessorIF.INGVTweetProcessor(),
                                       words_to_track=['STIMA #PROVVISORIA'], user=['121049123'])
-    #tweet_retreiver.get_tweets_coords(queue_tweets, tweetProcessorIF.INGVTweetProcessor(),
-    #                                  words_to_track=['STIMA #PROVVISORIA'], user=['175041414'])
+
 def generic_tweet_coord_producer(queue_tweets=dataQueue):
+    '''
+    this function is used to retrieve coords from tweets posted by any user if they talk
+    about a recently happened earthquake
+    @param queue_tweets: data queue where tweets coords are stored
+    @return:
+    '''
     tweet_retreiver.get_tweets_coords(queue_tweets, tweetProcessorIF.genericTweetProcessor(),
                                       words_to_track=['terremoto'])
 
 # Function called by the consumer threads
 def consumer(queue_tweets=dataQueue):
+    '''
+    this function is used to plot useful infos about a recently happened earthquake
+    such as place, possible seismogenic sources involved, cities involved and main roads to
+    reach the involved area. This is happening only if the queue_tweets is not empty.
+
+    @param queue_tweets: data queue from where tweets coords are loaded
+    @return:
+    '''
     while True:
         # we check every 2 mins
         time.sleep(120)
@@ -86,6 +99,9 @@ def consumer(queue_tweets=dataQueue):
 
 
 if __name__ == "__main__":
+    '''
+    main corpus of the program. The above functions are started in three different thread.
+    '''
     tweets = queue.Queue()
     start_new_thread(INGV_coord_producer, (tweets,))
     start_new_thread(generic_tweet_coord_producer, (tweets,))

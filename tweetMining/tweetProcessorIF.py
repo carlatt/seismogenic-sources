@@ -1,9 +1,11 @@
 from tweetMining import earthquake_detector
-import pandas as pd
-'''
-utilities to retreive a location from a tweet
-'''
+
 def find_city(city_name):
+    '''
+    Finds city info from cities500 if possible
+    @param city_name: string
+    @return: array of info about city
+    '''
     with open('data/cities500/cities500.txt', 'r', encoding='utf') as f:
         lines = f.readlines()
 
@@ -37,16 +39,28 @@ def find_city(city_name):
 
 
 class tweetProcessorIF(object):
+    '''
+    tweet processor interface
+    '''
     def __init__(self):
         pass
     def gimme_coords(self, tweet):
         raise Exception("NotImplementedException")
 
 class genericTweetProcessor(tweetProcessorIF):
+    '''
+    Analyzes tweet texts using sentiment analysis in order to determine
+    if is about an earthquake that is happening currently or not
+    '''
     def __init__(self):
         super().__init__()
         self.SA = earthquake_detector.earthquake_detector_SA()
     def gimme_coords(self, tweet):
+        '''
+
+        @param tweet: tweet text to analyze
+        @return: tweet coordinates if possible
+        '''
         if hasattr(tweet, "retweeted_status"):  # Check if Retweet
             try:
                 text = tweet.retweeted_status.extended_tweet["full_text"]
@@ -66,20 +80,24 @@ class genericTweetProcessor(tweetProcessorIF):
                 if tweet.place is not None:
                     # we have to take the coords in the bounding_box
                     box = tweet.place.bounding_box.coordinates
-                    # x = (box[0][2][0]-box[0][1][0])/2
-                    # y = (box[0][2][1]-box[0][3][1])/2
-                    #return [float(x),float(y)]
-                    # for sake of simplicity we use one coordinate from bounding box of the city
+                    # we take the first one in bbox, it could be improved in the future
                     coords = box[0][0]
                     return coords
-                    #zone = find_city(tweet.place)
-                    #return [float(zone['longitude']), float(zone['latitude'])]
+
 
 
 class INGVTweetProcessor(tweetProcessorIF):
+    '''
+    Analyzes tweets from INGV and retreives coords
+    '''
     def __init__(self):
         super().__init__()
     def gimme_coords(self, tweet):
+        '''
+
+        @param tweet: tweet text to analyze
+        @return: tweet coordinates if possible
+        '''
         print(tweet.text)
         res = tweet.text.split('prov/zona')
         res = res[1].split()
@@ -88,6 +106,3 @@ class INGVTweetProcessor(tweetProcessorIF):
         # then we have to convert place to coords as above
         zone = find_city(place)
         return [float(zone['longitude']), float(zone['latitude'])]
-
-if __name__ == "__main__":
-    pass
