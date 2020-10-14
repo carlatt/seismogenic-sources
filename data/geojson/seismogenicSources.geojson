@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "data\\geojson\\seismogenicSources.geojson",
+"features": [
+{ "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 13.51958, 42.074493 ], [ 13.759166, 41.896436 ], [ 13.692982, 41.847152 ], [ 13.453211, 42.025209 ], [ 13.51958, 42.074493 ] ] ] } },
+{ "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 13.937169, 41.933693 ], [ 14.079207, 41.78818 ], [ 14.00271, 41.746726 ], [ 13.860498, 41.89224 ], [ 13.937169, 41.933693 ] ] ] } },
+{ "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 13.185225, 42.519176 ], [ 13.397271, 42.378363 ], [ 13.326091, 42.319939 ], [ 13.113885, 42.460752 ], [ 13.185225, 42.519176 ] ] ] } }
+]
+}
