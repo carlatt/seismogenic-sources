@@ -1,14 +1,17 @@
 from osgeo import osr, ogr
 from visuallayer import *
+from utils import *
 
 class SeismogenicSources:
     def __init__(self, clusters, nSources):
         self.clusters = clusters
         self.numberOfSources = nSources
-        self.distance = 0.7
+        self.clustersBuffer = 0.7
+        self.faultsBuffer = 0.3
         self.foundSources = self.find_n_candidate_sources(clusters, nSources)
         self.foundArea = self.find_seismogenic_area(clusters, nSources)
         self.areaOfInterest= self.find_area_of_interest()
+        self.foundCities = self.find_cities_at_risk()
 
     def find_candidate_sources(self, polygons):
         # load the composite seismologic sources from the shapefile 'CSSPLN321.shp''
@@ -42,11 +45,12 @@ class SeismogenicSources:
         n_candidates = []
         for i in range(0, min(n,len(candidatesCount))):
             n_candidates.append(candidates[i])
+        saveGeometriesAsGEOJSON('seismogenicSources', n_candidates)
         return  n_candidates
 
     def find_nearest_sources(self, polygon,layer_seism):
 
-        area = polygon.Buffer(self.distance)
+        area = polygon.Buffer(self.clustersBuffer)
 
         sources=[]
         for source in layer_seism:
@@ -64,11 +68,17 @@ class SeismogenicSources:
         candidates = self.find_n_candidate_sources(polygons, n)
         union = ogr.Geometry(ogr.wkbPolygon)
 
-        #find a 15km buffer for each candidate and dothe union of them
+        #find a 15km buffer for each candidate and do the union of them
         for candidate in candidates:
-            union = union.Union(candidate.Buffer(self.distance))
-
+            union = union.Union(candidate.Buffer(self.faultsBuffer))
+        saveGeometryAsGEOJSON('areaAtRisk',union)
+        centroid = union.Centroid()
+        #saveGeometryAsFeatureGEOJSON('centroid_areaatrisk', centroid)
         return union
+
+    def find_cities_at_risk(self):
+        return 1
+        #Todo: finire que
 
     def find_area_of_interest(self):
         area_of_interest = ogr.Geometry(ogr.wkbPolygon)
@@ -85,7 +95,7 @@ class SeismogenicSources:
         #plot clusters
         for cluster in self.clusters:
             plot_geometry(cluster, fillcolor='green', alpha=1)
-            plot_geometry(cluster.Buffer(self.distance), fillcolor='grey', alpha=0.2)
+            plot_geometry(cluster.Buffer(self.clustersBuffer), fillcolor='grey', alpha=0.2)
 
         #plot the possible seismogenic area
         plot_geometry(self.foundArea, fillcolor='red', alpha=0.1)
@@ -121,6 +131,7 @@ def get_envelope_as_geometry(geom):
 
     return poly_envelope
 
+
 if __name__ == '__main__':
 
     p1='POLYGON((13.5068345450051 42.453405113893 0, 13.4096230499813 42.4523491454874 0, 13.2115443247965 42.4064643249082 0, 13.1851261157124 42.3844347578868 0, 13.1862671506709 42.337148180385 0, 13.2258412924453 42.2526387443975 0, 13.2423197602569 42.2312002178368 0, 13.3705863707811 42.1833929419606 0, 13.4698105487939 42.19658686572 0, 13.5302690593105 42.2821405484086 0, 13.5230236642177 42.3785610045857 0, 13.5068345450051 42.453405113893 0))'
@@ -134,7 +145,7 @@ if __name__ == '__main__':
     polygon4 = ogr.CreateGeometryFromWkt(p4)
     clusters=[polygon1,polygon2,polygon3,polygon4]
 
-    nSources= 6 #number of possible sources
+    nSources= 3 #number of possible sources
 
     SeismSources = SeismogenicSources(clusters, nSources)
 
@@ -144,3 +155,4 @@ if __name__ == '__main__':
     SeismSources.plot_seismogenic_data(plotItaly=True)
     plt.savefig('seismogenicSources')
     plt.show()
+
